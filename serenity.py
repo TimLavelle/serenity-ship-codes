@@ -14,7 +14,10 @@ right_green_thruster = LEDBoard(17, pwm=True)
 boosters = LEDBoard(24, 25, pwm=True)
 
 # Thruster Servos
-left_thruster = AngularServo(12, min_angle=-90, max_angle=90)
+myCorrection=0.0
+maxPW=(2.0+myCorrection)/1000
+minPW=(1.0-myCorrection)/1000
+left_thruster = AngularServo(12, min_pulse_width=minPW, max_pulse_width=maxPW)
 #right_thruster = AngularServo(, min_angle=-90, max_angle=90)
 
 ## Setup the audio files
@@ -54,7 +57,10 @@ def cruising_display():
 def orbital_display():
 	body_leds.on()
 	hull_led.pulse(.25,.25)
-	left_thruster.angle = 90
+	for value in range(0,21):
+		thrusterMove=(float(value)-10)/10
+		left_thruster.value=thrusterMove
+		sleep(0.02)
 	#right_thruster.angle = 90
 	left_red_thruster.pulse(.25,.25)
 	left_green_thruster.pulse(.25,.25)
@@ -96,7 +102,10 @@ def set_sequences(btn):
 		running.update(dict(dict.fromkeys(["static", "cruising"], False), **dict.fromkeys(["orbital"], True)))
 	else:
 		if running["orbital"] == True:
-			left_thruster.angle = -90
+			for value in range(20,-1,-1):
+				thrusterMove=(float(value)-10)/10
+				left_thruster.value=thrusterMove
+				sleep(0.02)
 			#right_thruster.angle = -90
 		running.update(dict.fromkeys(["static", "cruising", "orbital"], False))
 		leds_off()
