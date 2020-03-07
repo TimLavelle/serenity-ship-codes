@@ -15,22 +15,27 @@ boosters = LEDBoard(24, 25, pwm=True)
 small_Engine_leds = LEDBoard(10, 9, 11, 0, pwm=True)
 large_Engine_led = LEDBoard(2, pwm=True)
 
-# Thruster Servos
+## Thruster Servos
 myCorrection=0.45
 maxPW=(2.0+myCorrection)/1000
 minPW=(1.0-myCorrection)/1000
 left_thruster = AngularServo(12, min_pulse_width=minPW, max_pulse_width=maxPW)
 right_thruster = AngularServo(14, min_pulse_width=minPW, max_pulse_width=maxPW)
+left_thruster.angle = 0
 left_thruster.detach()
+right_thruster.angle = 0
 right_thruster.detach()
 
-## Setup the audio files
-explode_path = Path("/home/pi/ship-codes/audio/explode.ogg")
+## Define the buttons
+static_button = Button(1)
+cruising_button = Button(8)
+orbital_button = Button(15)
 
+## Set thrusters default position and detach
 def setThrusters(angle):
 	left_thruster.angle = angle
 	right_thruster.angle = angle
-	sleep(.5)
+	sleep(.3)
 	left_thruster.detach()
 	right_thruster.detach()
 
@@ -95,14 +100,10 @@ def orbital_display():
 	small_Engine_leds.blink(0.01,0.01)
 	large_Engine_led.blink(0.01,0.01)
 
-## Define the buttons
-static_button = Button(1)
-cruising_button = Button(8)
-orbital_button = Button(15)
-
 # Define the states of the LED sequences
 running = dict.fromkeys(["static", "cruising", "orbital"], False)
 
+leds_off()
 def set_sequences(btn):
 	global running
 	if btn==static_button and running["static"] == False:
@@ -116,7 +117,11 @@ def set_sequences(btn):
 		running.update(dict(dict.fromkeys(["static", "cruising"], False), **dict.fromkeys(["orbital"], True)))
 	else:
 		if running["orbital"] == True:
-			setThrusters(0)
+			left_thruster.angle = 0
+			right_thruster.angle = 0
+			sleep(0.2)
+			right_thruster.detach()
+			left_thruster.detach()
 		running.update(dict.fromkeys(["static", "cruising", "orbital"], False))
 		leds_off()
 
